@@ -1,0 +1,7 @@
+{
+  "Clear notifications": "Vymazať upozornenia",
+  "In the notification shade, presses Clear all. On the lock screen, which has no such button, dismisses the notifications one by one.": "V lište upozornení stlačí Vymazať všetky. Na zamknutej obrazovke, kde to tlačidlo nie je, zruší upozornenia jedno po druhom.",
+  "Clear all notifications": "Vymazať všetky upozornenia",
+  "There are no notifications that can be cleared": "Nenašiel som žiadne upozornenie, ktoré sa dá vymazať",
+  "{count} notification cleared": { "one": "Vymazané {count} upozornenie", "few": "Vymazané {count} upozornenia", "many": "Vymazaných {count} upozornení", "other": "Vymazaných {count} upozornení" }
+}

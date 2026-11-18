@@ -1,0 +1,12 @@
+{
+  "Translate the focused text": "Preložiť zameraný text",
+  "Translates the focused item's text into the phone's language with Google Translate, as Instant Translate does in NVDA, and reads the translation. When Google can't be reached, it uses the service in SandFly's Translation settings. A name or number that can't be translated is read as it is.": "Preloží text zameraného prvku do jazyka telefónu cez Google Prekladač, ako Instant Translate v NVDA, a prečíta preklad. Keď Google nejde, použije službu z nastavení Preklad v SandFly. Názov alebo číslo, ktoré sa preložiť nedá, prečíta tak, ako je.",
+  "Language detection is still downloading. Try again in a moment.": "Rozpoznávanie jazyka sa ešte sťahuje, skús o chvíľu.",
+  "The translation service can't be reached.": "Služba prekladu nie je dostupná.",
+  "The translation service isn't set up.": "Služba prekladu nie je nastavená.",
+  "The translation service has used up its limit.": "Služba prekladu vyčerpala limit.",
+  "The translation service's key isn't valid.": "Kľúč služby prekladu nie je platný.",
+  "The focused item has no text to translate": "Zameraný prvok nemá text na preklad",
+  "Check the translation service in SandFly's settings.": "Skontroluj službu prekladu v nastaveniach SandFly.",
+  "Translation failed.": "Preklad sa nepodaril."
+}

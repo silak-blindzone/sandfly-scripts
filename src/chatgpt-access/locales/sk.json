@@ -1,0 +1,23 @@
+{
+  "Accessible ChatGPT": "Prístupný ChatGPT",
+  "ChatGPT with a screen reader: reads a whole answer at once in a window you can read by line, word and character, puts the buttons under an answer in its Actions menu, pages through the conversation, announces a finished answer and names the message field.": "ChatGPT pre čítačku: celú odpoveď prečíta naraz v okne na čítanie po riadkoch, slovách a znakoch, tlačidlá pod odpoveďou dá do jej Akcií, posúva rozhovor po obrazovkách, ohlási dokončenú odpoveď a pomenuje pole na písanie.",
+  "Announce a finished answer": "Ohlásiť dokončenú odpoveď",
+  "Read a finished answer at once": "Dokončenú odpoveď hneď prečítať",
+  "Opens it in the reading window": "Otvorí ju v okne na čítanie",
+  "Write to the log": "Zapisovať do záznamu",
+  "For finding problems: logs what the script does": "Na hľadanie chýb: zapisuje, čo skript robí",
+  "Read the last answer": "Prečítať poslednú odpoveď",
+  "Page through the conversation": "Posun v rozhovore",
+  "Message to ChatGPT": "Správa pre ChatGPT",
+  "Could not read the answer": "Odpoveď sa nepodarilo prečítať",
+  "ChatGPT answer": "Odpoveď ChatGPT",
+  "There is no answer on the screen. Move to one or to the end of the conversation.": "Na obrazovke nie je žiadna odpoveď. Posuňte sa k nej alebo na koniec rozhovoru.",
+  "This list can not be scrolled": "Tu sa nedá posúvať",
+  "Start of conversation": "Začiatok rozhovoru",
+  "End of conversation": "Koniec rozhovoru",
+  "The answer is finished": "Odpoveď je hotová",
+  "Read the whole answer": "Prečítať celú odpoveď",
+  "Buttons under the answer": "Tlačidlá pod odpoveďou",
+  "There are no buttons under this answer on the screen": "Pod touto odpoveďou nie sú na obrazovke žiadne tlačidlá",
+  "Button {n}": "Tlačidlo {n}"
+}

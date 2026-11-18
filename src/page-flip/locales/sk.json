@@ -1,0 +1,10 @@
+{
+  "Page by page": "Listovanie po stránkach",
+  "Moves through a long list a screen at a time, as Jieshuo does: scrolls the list that focus is in a page forward or back, and focuses the first new item, which is then read. Assign the two commands to gestures in SandFly's gesture settings.": "Listuje dlhým zoznamom po obrazovkách ako Jieshuo: posunie zoznam, v ktorom je fokus, o stránku dopredu alebo späť a dá fokus na prvú novú položku, ktorá sa prečíta. Oba príkazy priraď gestám v nastaveniach gest SandFly.",
+  "Next page": "Ďalšia stránka",
+  "Previous page": "Predchádzajúca stránka",
+  "There is no list here to move through by page": "Tu nie je zoznam, ktorým sa dá listovať",
+  "End of list": "Koniec zoznamu",
+  "Start of list": "Začiatok zoznamu",
+  "Could not move focus to the new page": "Fokus sa na novú stránku nepodarilo presunúť"
+}
