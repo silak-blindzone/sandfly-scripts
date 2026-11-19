@@ -1,9 +1,9 @@
 local manifest = {
   id = 'translate-focused',
   name = 'Translate the focused text',
-  version = '3.0',
+  version = '3.1',
   author = 'Silak',
-  description = 'Translates the focused item\'s text into the phone\'s language with Google Translate, as Instant Translate does in NVDA, and reads the translation. When Google can\'t be reached, it uses the service in SandFly\'s Translation settings. A name or number that can\'t be translated is read as it is.',
+  description = 'Translates the focused item\'s text into the phone\'s language with Google Translate (NVDA-style endpoint plus a PA endpoint fallback), and reads the translation. When Google can\'t be reached, it uses the service in SandFly\'s Translation settings. A name or number that can\'t be translated is read as it is.',
   minApiVersion = 2,
   testedApiVersion = 5,
   onDemand = true,
@@ -57,25 +57,74 @@ end
 
 -- Google Translate's free service, the one Instant Translate in NVDA uses. Gives the
 -- translation, or nil.
+-- Google's translation endpoint, following the request format used by
+-- NVDA Instant Translate: Mozilla User-Agent and the dj=1 JSON response.
 local function googleTranslate(text)
-  local url = 'https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=auto&tl=' .. targetLanguage()
+  local url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='
+    .. targetLanguage() .. '&dt=t&dj=1&q=' .. urlEncode(text)
   local ok, res = pcall(sf.fetch, url, {
-    method = 'POST',
-    headers = { ['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8' },
-    body = 'q=' .. urlEncode(text),
-    timeout = 10,
+    method = 'GET',
+    headers = {
+      ['User-Agent'] = 'Mozilla/5.0',
+      ['Accept'] = 'application/json, text/plain, */*',
+    },
+    timeout = 15000, -- milliseconds
   })
   if not ok or res == nil or not res.ok then
     sf.log('Google error: ' .. tostring(ok and res and res.status or res))
     return nil
   end
   local okJson, data = pcall(function() return res:json() end)
-  if not okJson or type(data) ~= 'table' or type(data[1]) ~= 'table' then return nil end
+  if not okJson or type(data) ~= 'table' then return nil end
+
+  -- dj=1 returns an object with a sentences array.
   local parts = {}
-  for _, seg in ipairs(data[1]) do
-    if type(seg) == 'table' and type(seg[1]) == 'string' then parts[#parts + 1] = seg[1] end
+  if type(data.sentences) == 'table' then
+    for _, sentence in ipairs(data.sentences) do
+      if type(sentence) == 'table' and type(sentence.trans) == 'string' then
+        parts[#parts + 1] = sentence.trans
+      end
+    end
+  -- Retain compatibility with the older compact response format.
+  elseif type(data[1]) == 'table' then
+    for _, segment in ipairs(data[1]) do
+      if type(segment) == 'table' and type(segment[1]) == 'string' then
+        parts[#parts + 1] = segment[1]
+      end
+    end
   end
+
   local out = trim(table.concat(parts))
+  if out == '' then return nil end
+  return out
+end
+
+-- Alternative Google Translate endpoint used by several community translators.
+-- This is a publicly shared key, not a private key belonging to this project.
+local GOOGLE_PA_API_KEY = 'AIzaSyDLEeFI5OtFBwYBIoK_jj5m32rZK5CkCXA'
+
+local function googleTranslatePA(text)
+  local url = 'https://translate-pa.googleapis.com/v1/translate?params.client=gtx'
+    .. '&dataTypes=TRANSLATION'
+    .. '&key=' .. GOOGLE_PA_API_KEY
+    .. '&query.sourceLanguage=auto'
+    .. '&query.targetLanguage=' .. targetLanguage()
+    .. '&query.text=' .. urlEncode(text)
+  local ok, res = pcall(sf.fetch, url, {
+    method = 'GET',
+    headers = {
+      ['User-Agent'] = 'Mozilla/5.0',
+      ['Accept'] = 'application/json, text/plain, */*',
+    },
+    timeout = 15000,
+  })
+  if not ok or res == nil or not res.ok then
+    sf.log('Google PA error: ' .. tostring(ok and res and res.status or res))
+    return nil
+  end
+  local okJson, data = pcall(function() return res:json() end)
+  if not okJson or type(data) ~= 'table' then return nil end
+  local out = trim(data.translation)
   if out == '' then return nil end
   return out
 end
@@ -86,13 +135,21 @@ sf.onCommand('translate', function()
     sf.speak(tr('The focused item has no text to translate'), { interrupt = true })
     return
   end
+  -- Try SandFly's configured translation service first.
+  local ok, result = pcall(sf.translate, text)
+  if ok and result ~= nil and trim(result.text) ~= '' then
+    sf.speak(result.text, { interrupt = true })
+    return
+  end
+
+  -- If the configured service fails, try Google's free endpoint and then its PA endpoint.
   local translated = googleTranslate(text)
+  if translated == nil then translated = googleTranslatePA(text) end
   if translated ~= nil then
     sf.speak(translated, { interrupt = true })
     return
   end
-  -- Google can't be reached, such as without internet: SandFly's own service.
-  local ok, result = pcall(sf.translate, text)
+
   if not ok then
     local err = tostring(result)
     sf.log('Translation error: ' .. err)
@@ -108,9 +165,5 @@ sf.onCommand('translate', function()
     sf.speak(tr('Translation failed.') .. ' ' .. reason, { interrupt = true })
     return
   end
-  if result == nil or trim(result.text) == '' then
-    sf.speak(text, { interrupt = true })
-    return
-  end
-  sf.speak(result.text, { interrupt = true })
+  sf.speak(text, { interrupt = true })
 end)
