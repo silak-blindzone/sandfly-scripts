@@ -1,9 +1,9 @@
 local manifest = {
   id = 'telegram-voice',
   name = 'Telegram voice message',
-  version = '2.1',
+  version = '2.2',
   author = 'Silak',
-  description = 'In a Telegram chat, the first gesture starts and locks a voice message, and the second sends it. While the recording starts, SandFly is muted, so that nothing ends up in the message; touching the screen ends the mute. It finds the buttons by their place on the screen, so it works in any language.',
+  description = 'In a Telegram chat, the first gesture starts and locks a voice message, and the second sends it. While the recording starts, SandFly is muted and touch is locked, so that nothing ends up in the message and a stray touch can\'t cancel it. It finds the buttons by their place on the screen, so it works in any language.',
   minApiVersion = 6,
   testedApiVersion = 6,
   apps = { 'org.telegram.messenger' },
@@ -15,12 +15,15 @@ local manifest = {
 
 local tr = sf._
 
--- How far and how slowly to drag up from the microphone so that the recording locks.
+-- How far and how fast to drag up from the microphone so that the recording locks. Telegram
+-- starts recording only after a press of about 230 milliseconds; a shorter one is a tap, which
+-- switches the button between voice and video messages. This leaves a margin.
 local LOCK_DISTANCE = 600 -- pixels
-local LOCK_DURATION = 1500 -- milliseconds
--- How long the mute lasts after the lock, for Telegram's hint and the jump of focus to the
--- recording bar.
+local LOCK_DURATION = 270 -- milliseconds
+-- The mute lasts until Telegram has shown its hint and moved focus to the recording bar, and at
+-- most this long after the lock.
 local AFTER_LOCK = 1500 -- milliseconds
+local SETTLE = 150 -- milliseconds after the focus moved
 
 local function center(item)
   local b = item.bounds
@@ -77,29 +80,65 @@ local function sendButton()
   return nil
 end
 
--- SandFly's mute: speech, sounds and vibration. It ends on its own after the time given, and
--- when the user touches the screen; the script's own touches don't end it.
+-- SandFly's mute: speech, sounds and vibration. It ends on its own after the time given.
 local mute = nil
+-- The touch lock for the same time: the user's touches neither reach the app, where they could
+-- cancel the drag, nor end the mute; the script's own drag still goes to the app. The mute also
+-- silences any feedback of touches while touch is locked. Both volume keys end the lock.
+local lock = nil
 
 local function unmute()
+  if lock ~= nil then
+    pcall(function() lock:release() end)
+    lock = nil
+  end
   if mute ~= nil then
     pcall(function() mute:release() end)
     mute = nil
   end
 end
 
-local function unmuteAfter(ms)
-  local handle = mute
-  if handle == nil then return end
-  sf.setTimeout(function()
-    if mute == handle then unmute() end
-  end, ms)
+-- Where focus is, to tell when it moves.
+local function focusKey(item)
+  if item == nil then return '' end
+  local b = item.bounds or {}
+  return table.concat({ item.id or '', item.text or '', item.contentDescription or '',
+    tostring(b.left), tostring(b.top) }, '|')
+end
+
+-- Waits for the app's jump of focus to the recording bar at the bottom of the screen, at most
+-- `ms`, and gives how long it took, or nil.
+local function waitForFocusJump(before, ms)
+  local height = sf.device.info().screen.height
+  local start = sf.clock()
+  while sf.clock() - start < ms do
+    local f = sf.screen.focused()
+    if f ~= nil and f.bounds ~= nil and focusKey(f) ~= before and f.bounds.top > height * 0.75 then
+      return sf.clock() - start
+    end
+    sf.sleep(50)
+  end
+  return nil
+end
+
+-- Ends the mute once the app has moved focus to the recording bar, so that SandFly doesn't say
+-- it into the message, and no later than `ms`.
+local function unmuteAfterFocusJump(before, ms, lockedAfter)
+  local jump = waitForFocusJump(before, ms)
+  -- What SandFly would say about the new focus is dropped while muted; a moment more for it.
+  if jump ~= nil then sf.sleep(SETTLE) end
+  sf.log(string.format('Locked after %d ms; focus moved %s', lockedAfter,
+    jump and string.format('%d ms after that', jump) or 'not seen'))
+  unmute()
 end
 
 local function startRecording(mic)
   micX, micY = center(mic)
+  local before = focusKey(sf.screen.focused())
+  local start = sf.clock()
+  lock = sf.touch.lock(6000)
   mute = sf.feedback.mute({ speech = true, sounds = true, vibration = true }, 6000)
-  -- Touches the microphone and drags it up slowly: the recording starts and locks.
+  -- Touches the microphone and drags it up: the recording starts and locks.
   local ok = sf.touch.gesture({
     {
       points = { { x = micX, y = micY }, { x = micX, y = math.max(0, micY - LOCK_DISTANCE) } },
@@ -113,12 +152,12 @@ local function startRecording(mic)
     return
   end
   -- Waits until the recording is locked: the message field is gone and Send is in its place.
-  for _ = 1, 15 do
+  for _ = 1, 30 do
     if sendButton() ~= nil then
-      unmuteAfter(AFTER_LOCK)
+      unmuteAfterFocusJump(before, AFTER_LOCK, sf.clock() - start)
       return
     end
-    sf.sleep(100)
+    sf.sleep(50)
   end
   unmute()
   sf.speak(tr('The recording didn\'t lock'), { interrupt = true })

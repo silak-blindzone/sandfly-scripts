@@ -4,5 +4,5 @@
   "Could not start recording": "Nahrávanie sa nepodarilo spustiť",
   "The recording didn't lock": "Nahrávanie sa nezamklo",
   "Could not find the voice message button. Is the message field empty?": "Tlačidlo hlasovej správy som nenašiel. Je pole na správu prázdne?",
-  "In a WhatsApp chat, the first gesture starts and locks a voice message, and the second sends it. While the recording starts, SandFly is muted, so that nothing ends up in the message; touching the screen ends the mute.": "V rozhovore WhatsApp prvé gesto spustí a zamkne nahrávanie hlasovej správy, druhé ju odošle. Kým sa nahrávanie spúšťa, SandFly je stíšený, aby sa nič nenahralo do správy. Dotyk obrazovky stíšenie zruší."
+  "In a WhatsApp chat, the first gesture starts and locks a voice message, and the second sends it. While the recording starts, SandFly is muted and touch is locked, so that nothing ends up in the message and a stray touch can't cancel it.": "V rozhovore WhatsApp prvé gesto spustí a zamkne nahrávanie hlasovej správy, druhé ju odošle. Kým sa nahrávanie spúšťa, SandFly je stíšený a dotyk zamknutý, aby sa nič nenahralo do správy a náhodný dotyk nahrávanie nezrušil."
 }
