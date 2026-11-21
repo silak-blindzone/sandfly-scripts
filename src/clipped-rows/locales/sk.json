@@ -1,6 +1,0 @@
-{
-  "Whole rows at the edge": "Celé riadky pri okraji",
-  "SandFly reads a list row that is half under the navigation or status bar as just its position, such as \"11 of 26\". This adds the texts in the row. It works in any language.": "Riadok zoznamu, ktorý je napoly pod navigačným alebo stavovým panelom, SandFly prečíta len ako pozíciu, napríklad „11 z 26“. Skript doplní texty z riadku. Funguje v každom jazyku.",
-  "Write to the log": "Zapisovať do záznamu",
-  "For finding problems: logs each row it completes": "Na hľadanie chýb: zapíše každý riadok, ktorý doplní"
-}
