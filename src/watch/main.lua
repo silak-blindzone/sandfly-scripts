@@ -1,7 +1,7 @@
 local manifest = {
   id = 'watch',
   name = 'Watch',
-  version = '3.1',
+  version = '3.2',
   author = 'Silak',
   description = 'Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. In Haptic taps mode it taps instead: a heavy tap is a ten, a tap a unit and a light tap a zero, using the best haptics the phone has, and plain vibrations on a phone without them. It vibrates through Android directly, so it works with SandFly\'s vibration off. The taps, lengths, pauses, speed and strength can be changed in its settings. Ported from a Jieshuo plugin.',
   minApiVersion = 4,
@@ -12,7 +12,7 @@ local manifest = {
     { id = 'vibrate_time', title = 'Vibrate the time' },
   },
   settings = {
-    { key = 'mode', type = 'list', title = 'Mode', default = 'vibration',
+    { key = 'mode', type = 'list', title = 'Mode', default = 'haptic',
       options = {
         { value = 'vibration', label = 'Vibrations' },
         { value = 'haptic', label = 'Haptic taps' },
