@@ -1,9 +1,9 @@
 local manifest = {
   id = 'watch',
   name = 'Watch',
-  version = '3.0',
+  version = '3.1',
   author = 'Silak',
-  description = 'Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. It vibrates through Android directly, so it works with SandFly\'s vibration off. The lengths, pauses, speed and strength can be changed in its settings. Ported from a Jieshuo plugin.',
+  description = 'Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. In Haptic taps mode it taps instead: a heavy tap is a ten, a tap a unit and a light tap a zero, using the best haptics the phone has, and plain vibrations on a phone without them. It vibrates through Android directly, so it works with SandFly\'s vibration off. The taps, lengths, pauses, speed and strength can be changed in its settings. Ported from a Jieshuo plugin.',
   minApiVersion = 4,
   testedApiVersion = 5,
   onDemand = true,
@@ -12,6 +12,32 @@ local manifest = {
     { id = 'vibrate_time', title = 'Vibrate the time' },
   },
   settings = {
+    { key = 'mode', type = 'list', title = 'Mode', default = 'vibration',
+      options = {
+        { value = 'vibration', label = 'Vibrations' },
+        { value = 'haptic', label = 'Haptic taps' },
+      } },
+    { key = 'tenTap', type = 'list', title = 'Tap for a ten', summary = 'In Haptic taps mode', default = 'heavy',
+      options = {
+        { value = 'heavy', label = 'Heavy tap' },
+        { value = 'double', label = 'Double tap' },
+        { value = 'tap', label = 'Tap' },
+        { value = 'light', label = 'Light tap' },
+      } },
+    { key = 'unitTap', type = 'list', title = 'Tap for a unit', summary = 'In Haptic taps mode', default = 'tap',
+      options = {
+        { value = 'heavy', label = 'Heavy tap' },
+        { value = 'double', label = 'Double tap' },
+        { value = 'tap', label = 'Tap' },
+        { value = 'light', label = 'Light tap' },
+      } },
+    { key = 'zeroTap', type = 'list', title = 'Tap for a zero', summary = 'In Haptic taps mode', default = 'light',
+      options = {
+        { value = 'heavy', label = 'Heavy tap' },
+        { value = 'double', label = 'Double tap' },
+        { value = 'tap', label = 'Tap' },
+        { value = 'light', label = 'Light tap' },
+      } },
     { key = 'speed', type = 'list', title = 'Speed', default = '1',
       options = {
         { value = '2', label = 'Much slower' },
@@ -20,7 +46,7 @@ local manifest = {
         { value = '0.75', label = 'Faster' },
         { value = '0.5', label = 'Much faster' },
       } },
-    { key = 'strength', type = 'list', title = 'Strength', default = '100',
+    { key = 'strength', type = 'list', title = 'Strength', summary = 'For vibrations, and for taps on phones with the finest haptics', default = '100',
       options = {
         { value = '50', label = 'Weak' },
         { value = '100', label = 'Normal' },
@@ -42,9 +68,17 @@ local tr = sf._
 
 -- The zero vibration stays weak, as in the original plugin, whatever the strength.
 local ZERO_AMPLITUDE = 10
+-- About how long a haptic tap lasts; the pause after it starts when it ends.
+local TAP_LENGTH = 30
+-- The gap between the two taps of a double tap made of single primitives.
+local DOUBLE_GAP = 70
 
 local TalkBackService = java.import('com.google.android.accessibility.talkback.TalkBackService')
 local VibrationEffect = java.import('android.os.VibrationEffect')
+local Composition = java.import('android.os.VibrationEffect$Composition')
+local Vibrator = java.import('android.os.Vibrator')
+local Integer = java.import('java.lang.Integer')
+local Array = java.import('java.lang.reflect.Array')
 
 -- A number setting, kept within sensible bounds.
 local function number(key, fallback, low, high)
@@ -77,17 +111,83 @@ local function vibrator()
   return v
 end
 
--- Adds the vibrations for one number, hours or minutes, as { length, strength, pause after }.
+-- An int[] for the Vibrator methods that take a list of effects or primitives.
+local function ints(values)
+  local array = Array:newInstance(Integer.TYPE, #values)
+  for i, value in ipairs(values) do
+    Array:setInt(array, i - 1, value)
+  end
+  return array
+end
+
+-- The haptics the phone can play: 'primitives' (the finest, with strength), 'effects'
+-- (the system's predefined taps) or nil, when only plain vibrations are left.
+local function hapticKind(v)
+  local ok, all = pcall(function()
+    return v:areAllPrimitivesSupported(ints({
+      Composition.PRIMITIVE_CLICK, Composition.PRIMITIVE_THUD, Composition.PRIMITIVE_TICK }))
+  end)
+  if ok and all then return 'primitives' end
+  ok, all = pcall(function()
+    return v:areAllEffectsSupported(ints({
+      VibrationEffect.EFFECT_CLICK, VibrationEffect.EFFECT_HEAVY_CLICK,
+      VibrationEffect.EFFECT_DOUBLE_CLICK, VibrationEffect.EFFECT_TICK }))
+  end)
+  if ok and all == Vibrator.VIBRATION_EFFECT_SUPPORT_YES then return 'effects' end
+  return nil
+end
+
+-- One tap as a composition of primitives, at the chosen strength.
+local function primitiveTap(tap, scale)
+  local c = VibrationEffect:startComposition()
+  if tap == 'heavy' then
+    c:addPrimitive(Composition.PRIMITIVE_THUD, scale)
+  elseif tap == 'double' then
+    c:addPrimitive(Composition.PRIMITIVE_CLICK, scale)
+    c:addPrimitive(Composition.PRIMITIVE_CLICK, scale, DOUBLE_GAP)
+  elseif tap == 'light' then
+    c:addPrimitive(Composition.PRIMITIVE_TICK, scale)
+  else
+    c:addPrimitive(Composition.PRIMITIVE_CLICK, scale)
+  end
+  return c:compose()
+end
+
+local EFFECTS = {
+  heavy = 'EFFECT_HEAVY_CLICK',
+  double = 'EFFECT_DOUBLE_CLICK',
+  tap = 'EFFECT_CLICK',
+  light = 'EFFECT_TICK',
+}
+
+-- The three taps, for a ten, a unit and a zero, as vibration effects.
+local function taps(kind, c)
+  local function effect(key, fallback)
+    local tap = sf.settings.get(key) or fallback
+    if EFFECTS[tap] == nil then tap = fallback end
+    if kind == 'primitives' then
+      return primitiveTap(tap, c.amplitude / 255)
+    end
+    return VibrationEffect:createPredefined(VibrationEffect[EFFECTS[tap]])
+  end
+  return {
+    ten = effect('tenTap', 'heavy'),
+    unit = effect('unitTap', 'tap'),
+    zero = effect('zeroTap', 'light'),
+  }
+end
+
+-- Adds one number, hours or minutes, as { 'ten' | 'unit' | 'zero', pause after }.
 local function addNumber(parts, value, c)
   if value == 0 then
-    parts[#parts + 1] = { c.zeroVibration, ZERO_AMPLITUDE, 0 }
+    parts[#parts + 1] = { 'zero', 0 }
     return
   end
   for _ = 1, value // 10 do
-    parts[#parts + 1] = { c.longVibration, c.amplitude, c.pause }
+    parts[#parts + 1] = { 'ten', c.pause }
   end
   for _ = 1, value % 10 do
-    parts[#parts + 1] = { c.shortVibration, c.amplitude, c.pause }
+    parts[#parts + 1] = { 'unit', c.pause }
   end
 end
 
@@ -97,7 +197,7 @@ local function timePattern(hours, minutes, c, hoursOnly)
   if hoursOnly then return parts end
   -- The longer pause comes on top of the usual one, as in the original plugin.
   local last = parts[#parts]
-  last[3] = last[3] + c.longPause
+  last[2] = last[2] + c.longPause
   addNumber(parts, minutes, c)
   return parts
 end
@@ -114,9 +214,7 @@ local function vibrateTime()
   run = run + 1
   local mine = run
   v:cancel()
-  -- Without amplitude control, the phone vibrates at its own strength, and the zero is told
-  -- apart by being shorter.
-  local amplitudes = v:hasAmplitudeControl()
+  local c = config()
   local now = os.date('*t')
   local hours = now.hour
   if sf.settings.get('hour12') then
@@ -127,11 +225,39 @@ local function vibrateTime()
   if sf.settings.get('speak') then
     sf.speak(hoursOnly and string.format('%d', hours) or string.format('%d:%02d', hours, now.min))
   end
-  for _, part in ipairs(timePattern(hours, now.min, config(), hoursOnly)) do
+
+  local tapEffects = nil
+  if sf.settings.get('mode') == 'haptic' then
+    local kind = hapticKind(v)
+    if kind == nil then
+      sf.log.info('This phone has no haptic taps; using vibrations')
+    else
+      local ok, result = pcall(taps, kind, c)
+      if ok then
+        tapEffects = result
+        sf.log.info('Haptic taps: ' .. kind)
+      else
+        sf.log.warn('Haptic taps failed, using vibrations: ' .. tostring(result))
+      end
+    end
+  end
+  -- Without amplitude control, the phone vibrates at its own strength, and the zero is told
+  -- apart by being shorter.
+  local amplitudes = v:hasAmplitudeControl()
+  local lengths = { ten = c.longVibration, unit = c.shortVibration, zero = c.zeroVibration }
+
+  for _, part in ipairs(timePattern(hours, now.min, c, hoursOnly)) do
     if run ~= mine then return end
-    local amplitude = amplitudes and part[2] or VibrationEffect.DEFAULT_AMPLITUDE
-    v:vibrate(VibrationEffect:createOneShot(part[1], amplitude))
-    sf.sleep(part[1] + part[3])
+    local digit, pauseAfter = part[1], part[2]
+    if tapEffects then
+      v:vibrate(tapEffects[digit])
+      sf.sleep(TAP_LENGTH + pauseAfter)
+    else
+      local amplitude = digit == 'zero' and ZERO_AMPLITUDE or c.amplitude
+      if not amplitudes then amplitude = VibrationEffect.DEFAULT_AMPLITUDE end
+      v:vibrate(VibrationEffect:createOneShot(lengths[digit], amplitude))
+      sf.sleep(lengths[digit] + pauseAfter)
+    end
   end
 end
 
