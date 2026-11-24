@@ -1,9 +1,9 @@
 local manifest = {
   id = 'watch',
   name = 'Watch',
-  version = '3.2',
+  version = '3.3',
   author = 'Silak',
-  description = 'Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. In Haptic taps mode it taps instead: a heavy tap is a ten, a tap a unit and a light tap a zero, using the best haptics the phone has, and plain vibrations on a phone without them. It vibrates through Android directly, so it works with SandFly\'s vibration off. The taps, lengths, pauses, speed and strength can be changed in its settings. Ported from a Jieshuo plugin.',
+  description = 'Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. In Haptic taps mode it taps instead: a long vibration is a ten, a tap a unit and a light tap a zero, using the best haptics the phone has, and plain vibrations on a phone without them. It vibrates through Android directly, so it works with SandFly\'s vibration off. The taps, lengths, pauses, speed and strength can be changed in its settings. Ported from a Jieshuo plugin.',
   minApiVersion = 4,
   testedApiVersion = 5,
   onDemand = true,
@@ -17,8 +17,9 @@ local manifest = {
         { value = 'vibration', label = 'Vibrations' },
         { value = 'haptic', label = 'Haptic taps' },
       } },
-    { key = 'tenTap', type = 'list', title = 'Tap for a ten', summary = 'In Haptic taps mode', default = 'heavy',
+    { key = 'tenTap', type = 'list', title = 'Tap for a ten', summary = 'In Haptic taps mode', default = 'long',
       options = {
+        { value = 'long', label = 'Long vibration' },
         { value = 'heavy', label = 'Heavy tap' },
         { value = 'double', label = 'Double tap' },
         { value = 'tap', label = 'Tap' },
@@ -160,21 +161,28 @@ local EFFECTS = {
   light = 'EFFECT_TICK',
 }
 
--- The three taps, for a ten, a unit and a zero, as vibration effects.
+-- The three taps, for a ten, a unit and a zero, as vibration effects. A ten can also be the long
+-- vibration of Vibrations mode, which is easier to tell from a tap than any tap is.
 local function taps(kind, c)
   local function effect(key, fallback)
     local tap = sf.settings.get(key) or fallback
+    if tap == 'long' and key == 'tenTap' then
+      return VibrationEffect:createOneShot(c.longVibration, c.amplitude), c.longVibration
+    end
     if EFFECTS[tap] == nil then tap = fallback end
     if kind == 'primitives' then
       return primitiveTap(tap, c.amplitude / 255)
     end
     return VibrationEffect:createPredefined(VibrationEffect[EFFECTS[tap]])
   end
-  return {
-    ten = effect('tenTap', 'heavy'),
-    unit = effect('unitTap', 'tap'),
-    zero = effect('zeroTap', 'light'),
-  }
+  local result = { lengths = {} }
+  for digit, setting in pairs({ ten = { 'tenTap', 'long' }, unit = { 'unitTap', 'tap' },
+                                zero = { 'zeroTap', 'light' } }) do
+    local e, length = effect(setting[1], setting[2])
+    result[digit] = e
+    result.lengths[digit] = length or TAP_LENGTH
+  end
+  return result
 end
 
 -- Adds one number, hours or minutes, as { 'ten' | 'unit' | 'zero', pause after }.
@@ -251,7 +259,7 @@ local function vibrateTime()
     local digit, pauseAfter = part[1], part[2]
     if tapEffects then
       v:vibrate(tapEffects[digit])
-      sf.sleep(TAP_LENGTH + pauseAfter)
+      sf.sleep(tapEffects.lengths[digit] + pauseAfter)
     else
       local amplitude = digit == 'zero' and ZERO_AMPLITUDE or c.amplitude
       if not amplitudes then amplitude = VibrationEffect.DEFAULT_AMPLITUDE end

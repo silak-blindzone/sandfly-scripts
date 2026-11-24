@@ -1,6 +1,6 @@
 {
   "Watch": "Hodinky",
-  "Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. In Haptic taps mode it taps instead: a heavy tap is a ten, a tap a unit and a light tap a zero, using the best haptics the phone has, and plain vibrations on a phone without them. It vibrates through Android directly, so it works with SandFly's vibration off. The taps, lengths, pauses, speed and strength can be changed in its settings. Ported from a Jieshuo plugin.": "Povie čas vibráciami: dlhá vibrácia je desiatka, krátka jednotka a slabá krátka nula, medzi hodinami a minútami je dlhšia pauza. V režime Haptické ťuknutia namiesto toho ťuká: silné ťuknutie je desiatka, ťuknutie jednotka a jemné ťuknutie nula. Použije najlepšiu haptiku, akú telefón má, a na telefóne bez nej obyčajné vibrácie. Vibruje priamo cez Android, takže funguje aj s vypnutými vibráciami v SandFly. Ťuknutia, dĺžky, pauzy, rýchlosť a silu si môžeš zmeniť v nastaveniach. Prenesené z pluginu pre Jieshuo.",
+  "Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. In Haptic taps mode it taps instead: a long vibration is a ten, a tap a unit and a light tap a zero, using the best haptics the phone has, and plain vibrations on a phone without them. It vibrates through Android directly, so it works with SandFly's vibration off. The taps, lengths, pauses, speed and strength can be changed in its settings. Ported from a Jieshuo plugin.": "Povie čas vibráciami: dlhá vibrácia je desiatka, krátka jednotka a slabá krátka nula, medzi hodinami a minútami je dlhšia pauza. V režime Haptické ťuknutia namiesto toho ťuká: dlhá vibrácia je desiatka, ťuknutie jednotka a jemné ťuknutie nula. Použije najlepšiu haptiku, akú telefón má, a na telefóne bez nej obyčajné vibrácie. Vibruje priamo cez Android, takže funguje aj s vypnutými vibráciami v SandFly. Ťuknutia, dĺžky, pauzy, rýchlosť a silu si môžeš zmeniť v nastaveniach. Prenesené z pluginu pre Jieshuo.",
   "Vibrate the time": "Vibrovať čas",
   "Mode": "Spôsob",
   "Vibrations": "Vibrácie",
@@ -9,6 +9,7 @@
   "Tap for a unit": "Ťuknutie pre jednotku",
   "Tap for a zero": "Ťuknutie pre nulu",
   "In Haptic taps mode": "V režime Haptické ťuknutia",
+  "Long vibration": "Dlhá vibrácia",
   "Heavy tap": "Silné ťuknutie",
   "Double tap": "Dvojité ťuknutie",
   "Tap": "Ťuknutie",
