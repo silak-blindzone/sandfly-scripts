@@ -1,17 +1,26 @@
 local manifest = {
   id = 'watch',
   name = 'Watch',
-  version = '3.3',
+  version = '3.4',
   author = 'Silak',
-  description = 'Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. In Haptic taps mode it taps instead: a long vibration is a ten, a tap a unit and a light tap a zero, using the best haptics the phone has, and plain vibrations on a phone without them. It vibrates through Android directly, so it works with SandFly\'s vibration off. The taps, lengths, pauses, speed and strength can be changed in its settings. Ported from a Jieshuo plugin.',
+  description = 'Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. In Haptic taps mode it taps instead: a long vibration is a ten, a tap a unit and a light tap a zero, using the best haptics the phone has, and plain vibrations on a phone without them. It vibrates through Android directly, so it works with SandFly\'s vibration off. The taps, lengths, pauses, speed and strength can be changed in its settings. The command Time when locked, a command when unlocked tells the time on the lock screen and runs the SandFly command chosen in When unlocked otherwise, such as Lock or unlock touch. Ported from a Jieshuo plugin.',
   minApiVersion = 4,
   testedApiVersion = 5,
   onDemand = true,
-  permissions = { 'input', 'java', 'speech' },
+  permissions = { 'input', 'java', 'speech', 'system', 'clipboard' },
   commands = {
     { id = 'vibrate_time', title = 'Vibrate the time' },
+    { id = 'time_or_command', title = 'Time when locked, a command when unlocked' },
   },
   settings = {
+    -- The script adds every SandFly command to the options when it first runs a command.
+    { key = 'unlockedCommand', type = 'list', title = 'When unlocked',
+      summary = 'What Time when locked, a command when unlocked does with the phone unlocked',
+      default = 'TOGGLE_TOUCH_LOCK',
+      options = {
+        { value = 'time', label = 'Vibrate the time' },
+        { value = 'TOGGLE_TOUCH_LOCK', label = 'Lock or unlock touch' },
+      } },
     { key = 'mode', type = 'list', title = 'Mode', default = 'haptic',
       options = {
         { value = 'vibration', label = 'Vibrations' },
@@ -269,4 +278,50 @@ local function vibrateTime()
   end
 end
 
+-- Whether the phone is locked or its screen is off, when the time is told instead of the command.
+local function isLocked()
+  local context = TalkBackService:getInstance()
+  if context == nil then return true end
+  local power = context:getSystemService('power')
+  if power ~= nil and not power:isInteractive() then return true end
+  local keyguard = context:getSystemService('keyguard')
+  return keyguard ~= nil and keyguard:isKeyguardLocked()
+end
+
+-- Most characters the options of a list may hold, values and labels together.
+local MAX_OPTION_CHARS = 16384
+local MAX_OPTIONS = 500
+
+-- Lists every SandFly command in When unlocked, after Vibrate the time, so that the user can
+-- choose any of them in the settings of the script.
+local function listCommands()
+  local options = { { value = 'time', label = tr('Vibrate the time') } }
+  local chars = #options[1].value + #options[1].label
+  for _, command in ipairs(sf.commands.list()) do
+    local size = #command.id + #command.title
+    if #options >= MAX_OPTIONS or chars + size > MAX_OPTION_CHARS then break end
+    options[#options + 1] = { value = command.id, label = command.title }
+    chars = chars + size
+  end
+  sf.settings.setOptions('unlockedCommand', options)
+end
+
+local function timeOrCommand()
+  local command = sf.settings.get('unlockedCommand')
+  if command == nil or command == 'time' or isLocked() then
+    vibrateTime()
+    return
+  end
+  local ok, result = pcall(sf.commands.run, command)
+  if not ok then
+    sf.log.warn('Cannot run ' .. tostring(command) .. ': ' .. tostring(result))
+  end
+end
+
+local ok, failure = pcall(listCommands)
+if not ok then
+  sf.log.warn('Cannot list the SandFly commands: ' .. tostring(failure))
+end
+
 sf.onCommand('vibrate_time', vibrateTime)
+sf.onCommand('time_or_command', timeOrCommand)
