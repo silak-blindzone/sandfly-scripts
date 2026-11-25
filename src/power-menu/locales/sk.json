@@ -1,13 +1,14 @@
 {
   "Power menu": "Vypínacie menu",
-  "Makes the HyperOS power menu usable: swipe up twice to power off, or down twice to restart. Both are also in the Actions menu of the slider.": "Sprístupní vypínacie menu HyperOS: potiahnutie dvakrát hore telefón vypne, dvakrát dole reštartuje. Obe sú aj v Akciách posuvníka.",
-  "Power off (swipe up twice)": "Vypnúť telefón (dvakrát hore)",
-  "Restart (swipe down twice)": "Reštartovať telefón (dvakrát dole)",
+  "Makes the HyperOS and OnePlus power menus usable. HyperOS: swipe up twice to power off, or down twice to restart. OnePlus, in the directions its menu gives but with one finger: swipe up to restart, or down to power off. Both are also in the Actions menu of the slider.": "Sprístupní vypínacie menu HyperOS a OnePlus. HyperOS: potiahnutie dvakrát hore telefón vypne, dvakrát dole reštartuje. OnePlus, v smeroch podľa jeho menu, ale jedným prstom: potiahnutie hore reštartuje, dole vypne. Obe sú aj v Akciách posuvníka.",
+  "Swipe up: power off twice on HyperOS, restart on OnePlus": "Potiahnutie hore: v HyperOS dvakrát vypne, v OnePlus reštartuje",
+  "Swipe down: restart twice on HyperOS, power off on OnePlus": "Potiahnutie dole: v HyperOS dvakrát reštartuje, v OnePlus vypne",
   "Powering off": "Vypínam",
   "Restarting": "Reštartujem",
   "Power off? Swipe up again.": "Vypnúť telefón? Potiahni ešte raz hore.",
   "Restart? Swipe down again.": "Reštartovať telefón? Potiahni ešte raz dole.",
   "Power menu. Swipe up twice to power off, or down twice to restart.": "Vypínacie menu. Potiahni dvakrát hore na vypnutie, dvakrát dole na reštart.",
+  "Power menu. Swipe up to restart, or down to power off.": "Vypínacie menu. Potiahni hore na reštart, dole na vypnutie.",
   "Power off": "Vypnúť telefón",
   "Restart": "Reštartovať telefón"
 }
