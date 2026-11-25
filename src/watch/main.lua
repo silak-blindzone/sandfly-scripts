@@ -1,7 +1,7 @@
 local manifest = {
   id = 'watch',
   name = 'Watch',
-  version = '3.5',
+  version = '3.6',
   author = 'Silak',
   description = 'Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. In Haptic taps mode it taps instead: a long vibration is a ten, a tap a unit and a light tap a zero, using the best haptics the phone has, and plain vibrations on a phone without them. It vibrates through Android directly, so it works with SandFly\'s vibration off. The taps, lengths, pauses, speed and strength can be changed in its settings. The command Time when locked, a command when unlocked tells the time on the lock screen and runs the SandFly command chosen in When unlocked otherwise, such as Lock or unlock touch. Ported from a Jieshuo plugin.',
   minApiVersion = 4,
@@ -306,9 +306,40 @@ local function shorten(text, limit)
   return text:sub(1, utf8.offset(text, limit) - 1) .. '…'
 end
 
+-- Command ids up to this length are stored as they are; longer ones as a short key.
+local MAX_PLAIN_ID = 9
+
+-- A short key for a long command id, such as the ids of key combinations, so that every command
+-- fits in the list: 'h' and an FNV-1a hash of the id.
+local function shortKey(id)
+  local hash = 2166136261
+  for i = 1, #id do
+    hash = ((hash ~ id:byte(i)) * 16777619) & 0xFFFFFFFF
+  end
+  return string.format('h%x', hash)
+end
+
+-- The value that stands for a command in the list.
+local function commandValue(id)
+  -- The default of When unlocked stays as it is, so that it matches its option.
+  if #id <= MAX_PLAIN_ID or id == 'TOGGLE_TOUCH_LOCK' then return id end
+  return shortKey(id)
+end
+
+-- The id of the command a stored value stands for, or nil when SandFly has no such command.
+local function commandFor(value)
+  for _, command in ipairs(sf.commands.list()) do
+    if command.id == value or commandValue(command.id) == value then
+      return command.id
+    end
+  end
+  return nil
+end
+
 -- Lists every SandFly command in When unlocked, after Vibrate the time, so that the user can
 -- choose any of them in the settings of the script. A list holds a limited number of characters,
--- so long titles are cut, the same for all, until every command fits.
+-- so long ids are stored as short keys, and if that is not enough, long titles are cut, the same
+-- for all, until every command fits.
 local function listCommands()
   local options = { { value = 'time', label = tr('Vibrate the time') } }
   for _, command in ipairs(sf.commands.list()) do
@@ -316,7 +347,7 @@ local function listCommands()
       sf.log.warn('More SandFly commands than a list holds; the last ones are left out')
       break
     end
-    options[#options + 1] = { value = command.id, label = command.title }
+    options[#options + 1] = { value = commandValue(command.id), label = command.title }
   end
   local budget = MAX_OPTION_CHARS - OPTION_CHARS_MARGIN
   local function total(limit)
@@ -331,12 +362,19 @@ local function listCommands()
   while limit > 8 and total(limit) > budget do limit = limit - 1 end
   for _, option in ipairs(options) do option.label = shorten(option.label, limit) end
   sf.settings.setOptions('unlockedCommand', options)
-  sf.log.debug(string.format('Listed %d commands, titles up to %d characters', #options, limit))
+  sf.log.debug(string.format('Listed %d commands in %d characters, titles up to %d characters',
+    #options, total(limit), limit))
 end
 
 local function timeOrCommand()
-  local command = sf.settings.get('unlockedCommand')
-  if command == nil or command == 'time' or isLocked() then
+  local value = sf.settings.get('unlockedCommand')
+  if value == nil or value == 'time' or isLocked() then
+    vibrateTime()
+    return
+  end
+  local command = commandFor(value)
+  if command == nil then
+    sf.log.warn('SandFly has no command for ' .. tostring(value) .. '; telling the time')
     vibrateTime()
     return
   end
