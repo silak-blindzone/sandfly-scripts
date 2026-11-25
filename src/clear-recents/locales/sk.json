@@ -1,6 +1,6 @@
 {
   "Clear recent apps": "Vymazať nedávne",
-  "On the recent apps screen, presses the button that clears all recent apps.": "Na obrazovke nedávnych aplikácií stlačí tlačidlo Vymazať všetky nedávne.",
+  "On the recent apps screen, presses the button that clears all recent apps. Works with the HyperOS and OnePlus recent apps screens.": "Na obrazovke nedávnych aplikácií stlačí tlačidlo Vymazať všetky nedávne. Funguje v nedávnych aplikáciách HyperOS aj OnePlus.",
   "Clear all recent apps": "Vymazať všetky nedávne",
   "Clear all": "Vymazať všetky",
   "Could not find the button that clears recent apps": "Tlačidlo Vymazať všetky nedávne som nenašiel"

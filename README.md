@@ -8,7 +8,7 @@ To use them, add this repository as a script source: in SandFly settings, go to 
 |---|---|---|
 | `chatgpt-access.zip` | ChatGPT | Reads a whole answer at once in a window you can read by line, word and character, puts the buttons under an answer in its Actions menu, pages through the conversation, announces a finished answer and names the message field. |
 | `clear-notifications.zip` | Notification shade | A command that presses Clear all. On the lock screen, which has no such button, it dismisses the notifications one by one. |
-| `clear-recents.zip` | Recent apps (POCO Launcher) | A command that clears all recent apps. |
+| `clear-recents.zip` | Recent apps (POCO Launcher, OnePlus) | A command that clears all recent apps. |
 | `page-flip.zip` | All apps | Moves through a long list a screen at a time, as Jieshuo does, and reads the first new item. |
 | `power-menu.zip` | HyperOS and OnePlus power menus | HyperOS: swipe up twice to power off, or down twice to restart. OnePlus, in the directions its menu gives but with one finger: swipe up to restart, or down to power off. Both are also in the Actions menu of the slider. |
 | `telegram-voice.zip` | Telegram | The first gesture starts and locks a voice message, and the second sends it, with SandFly muted while the recording starts. |
