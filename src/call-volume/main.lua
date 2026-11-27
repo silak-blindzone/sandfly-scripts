@@ -1,12 +1,12 @@
 local manifest = {
   id = 'call-volume',
   name = 'Call volume fix',
-  version = '1.0',
+  version = '1.1',
   author = 'Silak',
   description = 'For calls on Bluetooth headphones, where the speech of the screen reader can turn very quiet until the volume is moved up and back. A few seconds after a call starts on Bluetooth, it moves the call volume up and back itself and says so. The command Fix quiet speech in a call, in the SandFly menu, does the same at any time. Before and after each fix, and when a call starts, ends or moves to or from Bluetooth, it writes the state of the sound to its log, so that the cause can be found.',
   minApiVersion = 5,
   testedApiVersion = 7,
-  permissions = { 'java', 'speech' },
+  permissions = { 'input', 'java', 'speech' },
   settings = {
     { key = 'autoFix', type = 'switch', title = 'Fix by itself in Bluetooth calls', default = true },
     { key = 'delay', type = 'number', title = 'Seconds before the fix', summary = '5 by default', default = 5 },
