@@ -1,14 +1,15 @@
 local manifest = {
   id = 'chatgpt-access',
   name = 'Accessible ChatGPT',
-  version = '2.1',
+  version = '2.2',
   author = 'Silak',
-  description = 'ChatGPT with a screen reader: reads a whole answer at once in a window you can read by line, word and character, puts the buttons under an answer in its Actions menu, pages through the conversation, announces a finished answer and names the message field.',
+  description = 'ChatGPT with a screen reader: reads a whole answer at once in a window you can read by line, word and character, skips the buttons under an answer when swiping and puts them in its Actions menu, says You before your messages, describes or reads the text of pictures in the conversation, pages through the conversation, announces a finished answer and names the message field.',
   minApiVersion = 5,
   testedApiVersion = 5,
   apps = { 'com.openai.chatgpt' },
   permissions = { 'screen', 'speech', 'actions', 'input', 'dialogs', 'clipboard' },
   settings = {
+    { key = 'markYou', type = 'switch', title = 'Say You before your messages', default = true },
     { key = 'announceDone', type = 'switch', title = 'Announce a finished answer', default = true },
     { key = 'autoRead', type = 'switch', title = 'Read a finished answer at once', summary = 'Opens it in the reading window', default = false },
     { key = 'debugLog', type = 'switch', title = 'Write to the log', summary = 'For finding problems: logs what the script does', default = false },
@@ -20,6 +21,28 @@ local manifest = {
   rules = {
     -- The message field has no description, only a hint above it.
     { match = { className = 'EditText' }, label = 'Message to ChatGPT' },
+    -- The buttons under an answer: swiping skips them, and the Actions menu of the answer has
+    -- them. Their names in Slovak, Czech and English.
+    { match = { clickable = true, has = { contentDescription = 'Kopírovať' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Dobrá odpoveď' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Zlá odpoveď' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Prečítať nahlas' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Zdieľať' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Ďalšie akcie' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Kopírovat' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Dobrá odpověď' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Špatná odpověď' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Přečíst nahlas' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Sdílet' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Další akce' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Copy' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Good response' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Bad response' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Read aloud' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'Share' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { contentDescription = 'More actions' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { text = 'Zdroje' }, inside = { scrollable = true } }, hide = 'all' },
+    { match = { clickable = true, has = { text = 'Sources' }, inside = { scrollable = true } }, hide = 'all' },
   },
 }
 
@@ -215,6 +238,48 @@ end
 sf.onContentChange(scheduleCheck)
 sf.onWindowChange(scheduleCheck)
 
+-- Your messages are bubbles at the right edge; the answers start at the left edge, and the
+-- Sources button under an answer ends before the right edge.
+local screenWidth = sf.device.info().screen.width
+
+local function isYours(item)
+  local b = item.bounds
+  return b ~= nil and item.className ~= nil and item.className:sub(-8) == 'TextView'
+    and b.left > screenWidth * 0.12 and b.right > screenWidth * 0.9
+end
+
+sf.onFocus(function(item)
+  if sf.settings.get('markYou') ~= false and isYours(item) then
+    return { before = tr('You:') }
+  end
+end)
+
+-- Pictures in the conversation, by the names ChatGPT gives them.
+local PICTURE = { ['Obrázok'] = true, ['Obrázek'] = true, ['Image'] = true }
+
+local function isPicture(item)
+  return item ~= nil and PICTURE[item.contentDescription or ''] == true
+end
+
+local function describePicture(item)
+  item:focus()
+  local ok, ran = pcall(sf.commands.run, 'DESCRIBE_IMAGE')
+  if not ok or not ran then
+    sf.speak(tr('Could not describe the picture'), { interrupt = true })
+  end
+end
+
+local function readPictureText(item)
+  local ok, result = pcall(item.recognizeText, item)
+  local text = ok and result and result.text or ''
+  text = text:gsub('^%s+', ''):gsub('%s+$', '')
+  if text == '' then
+    sf.speak(tr('There is no text in the picture, or it is not all on the screen'), { interrupt = true })
+    return
+  end
+  sf.ui.text(tr('Text in the picture'), text)
+end
+
 -- The row of buttons under the answer that the item is in.
 local function rowBelow(node, nodes)
   local y = top(node)
@@ -237,6 +302,12 @@ end
 -- On an answer's text: read the whole answer, or choose one of the buttons under it, by the
 -- names ChatGPT gives them. The menu itself asks ChatGPT nothing, so it opens at once.
 sf.onActions(function(item)
+  if isPicture(item) then
+    return {
+      { title = tr('Describe the picture'), first = true, run = describePicture },
+      { title = tr('Read the text in the picture'), first = true, run = readPictureText },
+    }
+  end
   if item == nil or item.className == nil or item.className:sub(-8) ~= 'TextView' then return nil end
   return {
     {

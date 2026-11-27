@@ -1,6 +1,7 @@
 {
   "Accessible ChatGPT": "Prístupný ChatGPT",
-  "ChatGPT with a screen reader: reads a whole answer at once in a window you can read by line, word and character, puts the buttons under an answer in its Actions menu, pages through the conversation, announces a finished answer and names the message field.": "ChatGPT pre čítačku: celú odpoveď prečíta naraz v okne na čítanie po riadkoch, slovách a znakoch, tlačidlá pod odpoveďou dá do jej Akcií, posúva rozhovor po obrazovkách, ohlási dokončenú odpoveď a pomenuje pole na písanie.",
+  "ChatGPT with a screen reader: reads a whole answer at once in a window you can read by line, word and character, skips the buttons under an answer when swiping and puts them in its Actions menu, says You before your messages, describes or reads the text of pictures in the conversation, pages through the conversation, announces a finished answer and names the message field.": "ChatGPT pre čítačku: celú odpoveď prečíta naraz v okne na čítanie po riadkoch, slovách a znakoch, tlačidlá pod odpoveďou pri švihaní preskočí a dá ich do Akcií odpovede, pred tvoje správy povie Ty, obrázky v rozhovore opíše alebo prečíta ich text, posúva rozhovor po obrazovkách, ohlási dokončenú odpoveď a pomenuje pole na písanie.",
+  "Say You before your messages": "Pred tvoje správy povedať Ty",
   "Announce a finished answer": "Ohlásiť dokončenú odpoveď",
   "Read a finished answer at once": "Dokončenú odpoveď hneď prečítať",
   "Opens it in the reading window": "Otvorí ju v okne na čítanie",
@@ -19,5 +20,11 @@
   "Read the whole answer": "Prečítať celú odpoveď",
   "Buttons under the answer": "Tlačidlá pod odpoveďou",
   "There are no buttons under this answer on the screen": "Pod touto odpoveďou nie sú na obrazovke žiadne tlačidlá",
-  "Button {n}": "Tlačidlo {n}"
+  "Button {n}": "Tlačidlo {n}",
+  "You:": "Ty:",
+  "Could not describe the picture": "Obrázok sa nepodarilo opísať",
+  "There is no text in the picture, or it is not all on the screen": "Na obrázku nie je text, alebo nie je celý na obrazovke",
+  "Text in the picture": "Text na obrázku",
+  "Describe the picture": "Opísať obrázok",
+  "Read the text in the picture": "Prečítať text na obrázku"
 }

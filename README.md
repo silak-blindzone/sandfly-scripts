@@ -6,7 +6,7 @@ To use them, add this repository as a script source: in SandFly settings, go to 
 
 | Script | App | Does |
 |---|---|---|
-| `chatgpt-access.zip` | ChatGPT | Reads a whole answer at once in a window you can read by line, word and character, puts the buttons under an answer in its Actions menu, pages through the conversation, announces a finished answer and names the message field. |
+| `chatgpt-access.zip` | ChatGPT | Reads a whole answer at once in a window you can read by line, word and character, skips the buttons under an answer when swiping and puts them in its Actions menu, says You before your messages, describes or reads the text of pictures in the conversation, pages through the conversation, announces a finished answer and names the message field. |
 | `clear-notifications.zip` | Notification shade | A command that presses Clear all. On the lock screen, which has no such button, it dismisses the notifications one by one. |
 | `clear-recents.zip` | Recent apps (POCO Launcher, OnePlus) | A command that clears all recent apps. |
 | `page-flip.zip` | All apps | Moves through a long list a screen at a time, as Jieshuo does, and reads the first new item. |
