@@ -1,21 +1,20 @@
 local manifest = {
   id = 'power-menu',
   name = 'Power menu',
-  version = '2.2',
+  version = '3.0',
   author = 'Silak',
-  description = 'Makes the HyperOS and OnePlus power menus usable. HyperOS: swipe up twice to power off, or down twice to restart. OnePlus, in the directions its menu gives but with one finger: swipe up to restart, or down to power off. Both are also in the Actions menu of the slider.',
+  description = 'Makes the HyperOS and OnePlus power menus usable with one swipe of one finger, in the directions each menu gives. HyperOS: swipe up to power off, or down to restart. OnePlus: swipe up to restart, or down to power off. Both are also in the Actions menu of the slider.',
   minApiVersion = 5,
   testedApiVersion = 5,
   apps = { 'miui.systemui.plugin', 'com.android.systemui' },
   permissions = { 'screen', 'actions', 'input', 'speech' },
   commands = {
-    { id = 'up', title = 'Swipe up: power off twice on HyperOS, restart on OnePlus', gesture = 'swipeUp' },
-    { id = 'down', title = 'Swipe down: restart twice on HyperOS, power off on OnePlus', gesture = 'swipeDown' },
+    { id = 'up', title = 'Swipe up: power off on HyperOS, restart on OnePlus', gesture = 'swipeUp' },
+    { id = 'down', title = 'Swipe down: restart on HyperOS, power off on OnePlus', gesture = 'swipeDown' },
   },
 }
 
 local tr = sf._
-local CONFIRM_SECONDS = 4
 local ACTION_SET_PROGRESS = 16908349
 local ACTION_SCROLL_FORWARD = 4096
 local ACTION_SCROLL_BACKWARD = 8192
@@ -127,26 +126,17 @@ local function drag(slider, powerOff)
   return ok
 end
 
-local pending = nil -- { up = true or false, at = seconds }
-
--- HyperOS: a swipe up twice powers off, down twice restarts. OnePlus, in the directions its menu
--- gives: a swipe up restarts and down powers off, at once. The menu asks for two fingers, but
--- SandFly passes two-finger swipes to the app, and the menu takes them only from TalkBack.
+-- One swipe, in the directions each menu gives. HyperOS: up powers off and down restarts.
+-- OnePlus: up restarts and down powers off. The OnePlus menu asks for two fingers, but SandFly
+-- passes two-finger swipes to the app, and the menu takes them only from TalkBack.
 local function onSwipe(up)
   local slider = findSlider()
   if slider == nil then return false end
   if slider.oneplus then
     drag(slider, not up)
-    return true
-  end
-  local now = os.time()
-  if pending ~= nil and pending.up == up and now - pending.at <= CONFIRM_SECONDS then
-    pending = nil
+  else
     drag(slider, up)
-    return true
   end
-  pending = { up = up, at = now }
-  sf.speak(up and tr('Power off? Swipe up again.') or tr('Restart? Swipe down again.'), { interrupt = true })
   return true
 end
 
@@ -157,7 +147,7 @@ sf.onCommand('down', function() return onSwipe(false) end)
 sf.onFocus(function(item)
   if not isSliderItem(item) then return nil end
   if item.packageName == 'miui.systemui.plugin' then
-    return { speak = tr('Power menu. Swipe up twice to power off, or down twice to restart.') }
+    return { speak = tr('Power menu. Swipe up to power off, or down to restart.') }
   end
   return { speak = tr('Power menu. Swipe up to restart, or down to power off.') }
 end)
