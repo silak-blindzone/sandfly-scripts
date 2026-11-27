@@ -1,0 +1,11 @@
+{
+  "Call volume fix": "Oprava hlasitosti pri hovore",
+  "For calls on Bluetooth headphones, where the speech of the screen reader can turn very quiet until the volume is moved up and back. A few seconds after a call starts on Bluetooth, it moves the call volume up and back itself and says so. The command Fix quiet speech in a call, in the SandFly menu, does the same at any time. Before and after each fix, and when a call starts, ends or moves to or from Bluetooth, it writes the state of the sound to its log, so that the cause can be found.": "Pre hovory cez Bluetooth slúchadlá, pri ktorých reč čítačky môže veľmi stíchnuť, kým sa hlasitosťou nepohne hore a späť. Pár sekúnd po začiatku hovoru cez Bluetooth sám pohne hlasitosťou hovoru hore a späť a povie to. Príkaz Opraviť tichú reč počas hovoru v ponuke SandFly urobí to isté kedykoľvek. Pred každou opravou a po nej, a keď hovor začne, skončí alebo prejde na Bluetooth či z neho, zapíše stav zvuku do svojho denníka, aby sa dala zistiť príčina.",
+  "Fix by itself in Bluetooth calls": "Opraviť samo pri hovoroch cez Bluetooth",
+  "Seconds before the fix": "Sekundy pred opravou",
+  "5 by default": "Predvolene 5",
+  "Say when it fixes the volume": "Povedať, keď opraví hlasitosť",
+  "Fix quiet speech in a call": "Opraviť tichú reč počas hovoru",
+  "There is no call": "Nie je žiadny hovor",
+  "Volume fixed": "Hlasitosť opravená"
+}
