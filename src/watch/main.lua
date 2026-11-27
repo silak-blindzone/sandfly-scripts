@@ -1,7 +1,7 @@
 local manifest = {
   id = 'watch',
   name = 'Watch',
-  version = '4.0',
+  version = '4.1',
   author = 'Silak',
   description = 'Tells the time by vibration: a long vibration is a ten, a short one a unit, and a weak short one a zero, with a longer pause between hours and minutes. In Haptic taps mode it taps instead: a long vibration is a ten, a tap a unit and a light tap a zero, using the best haptics the phone has, and plain vibrations on a phone without them. It vibrates through Android directly, so it works with SandFly\'s vibration off. The taps, lengths, pauses, speed and strength can be changed in its settings. The command Time when locked, a command when unlocked tells the time on the lock screen and runs the SandFly command chosen in When unlocked otherwise, such as Lock or unlock touch. Ported from a Jieshuo plugin.',
   minApiVersion = 7,
@@ -13,8 +13,9 @@ local manifest = {
     { id = 'time_or_command', title = 'Time when locked, a command when unlocked' },
   },
   settings = {
-    -- SandFly's command list, with Vibrate the time first.
-    { key = 'unlockedCommand', type = 'command', title = 'When unlocked',
+    -- SandFly's command list, with Vibrate the time first. A new key: SandFly keeps the options
+    -- that version 3 set for unlockedCommand, a list, and would still show them.
+    { key = 'whenUnlocked', type = 'command', title = 'When unlocked',
       summary = 'What Time when locked, a command when unlocked does with the phone unlocked',
       default = 'TOGGLE_TOUCH_LOCK',
       options = { { value = 'time', label = 'Vibrate the time' } } },
@@ -292,7 +293,7 @@ local function isCommand(id)
 end
 
 local function timeOrCommand()
-  local value = sf.settings.get('unlockedCommand')
+  local value = sf.settings.get('whenUnlocked')
   if value == nil or value == 'time' or isLocked() then
     vibrateTime()
     return
@@ -303,7 +304,7 @@ local function timeOrCommand()
   if not ok then
     sf.log.warn('Cannot run ' .. tostring(value) .. ': ' .. tostring(result))
     if not isCommand(value) then
-      -- Such as a short key that version 3 stored for a long command id.
+      -- Such as a macro deleted since it was chosen.
       vibrateTime()
     end
   end
